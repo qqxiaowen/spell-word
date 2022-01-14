@@ -1,0 +1,46 @@
+.word-page {
+  display: flex;
+  flex-direction: column;
+  padding: 20px;
+
+  .setting-button {
+    width: 200px;
+    height: 40px;
+    align-self: flex-end;
+  }
+
+  .word-main {
+    position: relative;
+    .word-box,
+    .write-box {
+      display: flex;
+      font-size: 36px;
+      flex-wrap: wrap;
+      user-select: none;
+
+      .item {
+        min-width: 34px;
+        text-align: center;
+        margin-bottom: 60px;
+      }
+
+      .word-interval {
+        padding-right: 32px;
+      }
+
+      .success {
+        background-color: rgb(159, 245, 105);
+      }
+
+      .error {
+        background-color: rgb(255, 110, 110);
+      }
+    }
+
+    .write-box {
+      position: absolute;
+      top: 60px;
+      left: 0;
+    }
+  }
+}
