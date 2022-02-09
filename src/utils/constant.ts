@@ -2,7 +2,7 @@
  * @Author: xiaoWen
  * @Date: 2022-02-09 11:03:58
  * @LastEditors: xiaoWen
- * @LastEditTime: 2022-02-09 14:15:36
+ * @LastEditTime: 2022-02-09 14:33:33
  */
 
 interface MapItem {
@@ -12,7 +12,8 @@ interface MapItem {
 
 enum ESelectTypeMapValue {
   baseWord = 'baseWord',
-  fingerText = 'fingerText'
+  fingerText = 'fingerText',
+  tokenTest = 'tokenTest'
 }
 
 const fiterWorkArr = ['META', 'ALT', 'CONTROL', 'SHIFT', 'CAPSLOCK', 'TAB', 'ENTER']; // 需要过滤的特殊键
@@ -21,7 +22,8 @@ const wordInterval = 5; // 间隔
 
 const selectTypeMap: MapItem[] = [
   { label: '基础字母', value: ESelectTypeMapValue.baseWord },
-  { label: '手指练习', value: ESelectTypeMapValue.fingerText }
+  { label: '手指练习', value: ESelectTypeMapValue.fingerText },
+  { label: '符号练习', value: ESelectTypeMapValue.tokenTest }
 ];
 
 const baseWorkArr: MapItem[] = [
@@ -42,8 +44,16 @@ const fingerTestArr: MapItem[] = [
   { label: '食指-右', value: '6yhn7ujm' },
   { label: '中指-右', value: '8ik,' },
   { label: '无名指-右', value: '9ol.' },
-  { label: '小拇指-右', value: "0p;/-['=]" }
+  { label: '小拇指-右-基础', value: "0p;/" },
+  { label: '小拇指-右-扩展', value: "-['=]" }
 ];
 
-export { selectTypeMap, baseWorkArr, fingerTestArr, fiterWorkArr, wordInterval, ESelectTypeMapValue };
+const tokenTestArr: MapItem[] = [
+  { label: '无shift-右符号', value: `-=[];',./` },
+  { label: '有shift-右符号', value: `_+{}:"<>?` },
+  { label: '无shift-上符号', value: `1234567890-=` },
+  { label: '有shift-上符号', value: `!@#$%^&*()_+` }
+];
+
+export { selectTypeMap, fiterWorkArr, wordInterval, baseWorkArr, fingerTestArr, tokenTestArr, ESelectTypeMapValue };
 export type { MapItem };

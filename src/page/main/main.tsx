@@ -2,12 +2,12 @@
  * @Author: xiaoWen
  * @Date: 2022-01-14 10:39:37
  * @LastEditors: xiaoWen
- * @LastEditTime: 2022-02-09 14:15:45
+ * @LastEditTime: 2022-02-09 14:24:42
  */
 
 import { Button, Drawer, Form, InputNumber, Select } from 'antd';
 import { useEffect, useMemo, useState } from 'react';
-import { baseWorkArr, ESelectTypeMapValue, fingerTestArr, fiterWorkArr, MapItem, selectTypeMap, wordInterval } from '../../utils/constant';
+import { baseWorkArr, ESelectTypeMapValue, fingerTestArr, fiterWorkArr, MapItem, selectTypeMap, tokenTestArr, wordInterval } from '../../utils/constant';
 
 import './main.less';
 // import { selfAudio } from './utils';
@@ -57,6 +57,10 @@ const Main = () => {
     (formData.getFieldValue('fingerTest') || []).forEach((item: string) => {
       workArr = workArr.concat(item.toLocaleUpperCase().split(''));
     });
+    (formData.getFieldValue('tokenTest') || []).forEach((item: string) => {
+      workArr = workArr.concat(item.toLocaleUpperCase().split(''));
+    });
+
     workArr = Array.from(new Set(workArr));
     // console.log('workArr: ', workArr);
     // console.log('join-type: ', type);
@@ -161,6 +165,17 @@ const Main = () => {
               <Form.Item name="fingerTest" label="手指练习" rules={[{ required: true, message: '必选' }]}>
                 <Select mode="multiple" placeholder="请选择">
                   {fingerTestArr.map((item: MapItem) => (
+                    <Option value={item.value} key={item.label}>
+                      {item.label}
+                    </Option>
+                  ))}
+                </Select>
+              </Form.Item>
+            )}
+            {selectType.includes(ESelectTypeMapValue.tokenTest) && (
+              <Form.Item name="tokenTest" label="符号练习" rules={[{ required: true, message: '必选' }]}>
+                <Select mode="multiple" placeholder="请选择">
+                  {tokenTestArr.map((item: MapItem) => (
                     <Option value={item.value} key={item.label}>
                       {item.label}
                     </Option>
