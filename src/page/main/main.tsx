@@ -2,7 +2,7 @@
  * @Author: xiaoWen
  * @Date: 2022-01-14 10:39:37
  * @LastEditors: xiaoWen
- * @LastEditTime: 2022-01-14 10:43:41
+ * @LastEditTime: 2022-02-09 11:02:04
  */
 
 import { Button, Drawer, Form, InputNumber, Select } from 'antd';
@@ -13,45 +13,50 @@ import './main.less';
 
 const { Option } = Select;
 
-interface writeBoxArrItem {
+interface WriteBoxArrItem {
   className: string;
+  value: string;
+}
+
+interface WorkItem {
+  label: string;
   value: string;
 }
 
 const Main = () => {
   const [wordBoxArr, setWordBoxArr] = useState<string[]>([]);
-  const [writeBoxArr, setWriteBoxArr] = useState<writeBoxArrItem[]>([]);
-  // const [resultLength] = useState<number>(20); // 一次要练习的字符长度
+  const [writeBoxArr, setWriteBoxArr] = useState<WriteBoxArrItem[]>([]);
 
   const [isShowSettingDom, setIsShowSettingDom] = useState<boolean>(false); // 是否显示设置抽屉
 
   const [formData] = Form.useForm();
 
+  const fiterWorkArr = ['META', 'ALT', 'CONTROL', 'SHIFT', 'CAPSLOCK', 'TAB', 'ENTER']; // 需要过滤的特殊键
+  const baseWorkArr: WorkItem[] = [
+    // 要练习的字符映射
+    { label: '中右', value: 'H~J~K~L~;' },
+    { label: '中左', value: 'A~S~D~F~G' },
+    { label: '上右', value: 'Y~U~I~O~P' },
+    { label: '上左', value: 'Q~W~E~R~T' },
+    { label: '下右', value: 'N~M~,~.~/' },
+    { label: '下左', value: 'Z~X~C~V~B' }
+    // indexFingerRightOne: { label: '', value: ['Y', 'H', 'N'] },
+    // indexFingerRightTwo: { label: '', value: ['U', 'J', 'M'] },
+    // indexFingerLeftOne: { label: '', value: ['R', 'F', 'V'] },
+    // indexFingerLeftTwo: { label: '', value: ['T', 'G', 'B'] }
+  ];
+  const wordInterval = 5; // 间隔
+
   const defaultFormData = {
     resultLength: 100,
-    workType: ['middleRight']
+    workType: ['N~M~,~.~/']
   };
-  const fiterWorkArr = ['META', 'ALT', 'CONTROL', 'SHIFT', 'CAPSLOCK', 'TAB', 'ENTER']; // 需要过滤的特殊键
-  const baseWork: any = {
-    // 要练习的字符映射
-    middleRight: ['H', 'J', 'K', 'L', ';'],
-    middleLeft: ['A', 'S', 'D', 'F', 'G'],
-    topRight: ['Y', 'U', 'I', 'O', 'P'],
-    topLeft: ['Q', 'W', 'E', 'R', 'T'],
-    bottomRight: ['N', 'M', ',', '.', '/'],
-    bottomLeft: ['Z', 'X', 'C', 'V', 'B'],
-    indexFingerRightOne: ['Y', 'H', 'N'], // 右手食指1
-    indexFingerRightTwo: ['U', 'J', 'M'], // 右手食指2
-    indexFingerLeftOne: ['R', 'F', 'V'], // 左手食指1
-    indexFingerLeftTwo: ['T', 'G', 'B'] // 左手食指2
-  };
-  const wordInterval = 5; // 间隔
 
   // const selfAudioObj = new selfAudio();
 
   useEffect(() => {
     formData.setFieldsValue({ ...defaultFormData });
-    getWorkText();
+    getWorkText('init');
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -66,16 +71,17 @@ const Main = () => {
   }, [writeBoxArr, wordBoxArr, isShowSettingDom]);
 
   /** 获取随机字符 */
-  const getWorkText = () => {
+  const getWorkText = (type: string) => {
     let recordObj: any = {};
     let workArr: string[] = [];
-    // console.log(formData.getFieldsValue());
+    console.log(formData.getFieldsValue());
 
     (formData.getFieldValue('workType') || defaultFormData.workType).forEach((item: string) => {
-      workArr = workArr.concat(baseWork[item]);
+      workArr = workArr.concat(item.split('~'));
     });
     workArr = Array.from(new Set(workArr));
     // console.log('workArr: ', workArr);
+    // console.log('join-type: ', type);
     let resultArr = [];
     const forLength = formData.getFieldValue('resultLength') || defaultFormData.resultLength;
     for (let i = 0; i < forLength; i++) {
@@ -94,7 +100,7 @@ const Main = () => {
       }
     }
     // console.log('resultArr: ', resultArr);
-    console.log('recordObj: ', recordObj);
+    // console.log('recordObj: ', recordObj);
     setWordBoxArr(resultArr);
   };
 
@@ -121,10 +127,10 @@ const Main = () => {
       }
     }
     if (arr.length === wordBoxArr.length) {
-      console.log('练习完了', arr, wordBoxArr);
       // 练习完了
+      console.log('练习完了', arr, wordBoxArr);
       setWriteBoxArr([]);
-      getWorkText();
+      getWorkText('over');
     } else {
       setWriteBoxArr(arr);
     }
@@ -133,11 +139,15 @@ const Main = () => {
   /** 设置 */
   const settingDom = useMemo(() => {
     const hideDrawer = () => {
-      formData.validateFields().then(data => {
-        setIsShowSettingDom(false);
-        getWorkText();
-        setWriteBoxArr([]);
-      });
+      console.log('hideDrawer触发');
+      if (isShowSettingDom) {
+        // 收起时直接拍空格有时会触发Button-Click事件，点击page后则不会再触发
+        formData.validateFields().then(data => {
+          setIsShowSettingDom(false);
+          getWorkText('setting');
+          setWriteBoxArr([]);
+        });
+      }
     };
     return (
       <>
@@ -151,9 +161,9 @@ const Main = () => {
             </Form.Item>
             <Form.Item name="workType" label="练习区间" rules={[{ required: true, message: '必选' }]}>
               <Select mode="multiple" placeholder="请选择">
-                {Object.keys(baseWork).map(item => (
-                  <Option value={item} key={item}>
-                    {item}
+                {baseWorkArr.map((item: WorkItem) => (
+                  <Option value={item.value} key={item.label}>
+                    {item.label}
                   </Option>
                 ))}
               </Select>
@@ -166,7 +176,7 @@ const Main = () => {
       </>
     );
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [baseWork, formData, isShowSettingDom]);
+  }, [baseWorkArr, formData, isShowSettingDom]);
 
   const writeDom = useMemo(() => {
     return (
@@ -179,7 +189,7 @@ const Main = () => {
           ))}
         </div>
         <div className="write-box">
-          {writeBoxArr.map((item: writeBoxArrItem, index: number) => (
+          {writeBoxArr.map((item: WriteBoxArrItem, index: number) => (
             <div className={`item ${item.className}`} key={index}>
               {item.value}
             </div>
