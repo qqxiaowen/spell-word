@@ -2,11 +2,12 @@
  * @Author: xiaoWen
  * @Date: 2022-01-14 10:39:37
  * @LastEditors: xiaoWen
- * @LastEditTime: 2022-02-09 11:02:04
+ * @LastEditTime: 2022-02-09 14:15:45
  */
 
 import { Button, Drawer, Form, InputNumber, Select } from 'antd';
 import { useEffect, useMemo, useState } from 'react';
+import { baseWorkArr, ESelectTypeMapValue, fingerTestArr, fiterWorkArr, MapItem, selectTypeMap, wordInterval } from '../../utils/constant';
 
 import './main.less';
 // import { selfAudio } from './utils';
@@ -18,45 +19,19 @@ interface WriteBoxArrItem {
   value: string;
 }
 
-interface WorkItem {
-  label: string;
-  value: string;
-}
-
 const Main = () => {
   const [wordBoxArr, setWordBoxArr] = useState<string[]>([]);
   const [writeBoxArr, setWriteBoxArr] = useState<WriteBoxArrItem[]>([]);
 
-  const [isShowSettingDom, setIsShowSettingDom] = useState<boolean>(false); // 是否显示设置抽屉
+  const [isShowSettingDom, setIsShowSettingDom] = useState<boolean>(true); // 是否显示设置抽屉
+  const [selectType, setSelectType] = useState<ESelectTypeMapValue[]>([]); // 类型选择
 
   const [formData] = Form.useForm();
-
-  const fiterWorkArr = ['META', 'ALT', 'CONTROL', 'SHIFT', 'CAPSLOCK', 'TAB', 'ENTER']; // 需要过滤的特殊键
-  const baseWorkArr: WorkItem[] = [
-    // 要练习的字符映射
-    { label: '中右', value: 'H~J~K~L~;' },
-    { label: '中左', value: 'A~S~D~F~G' },
-    { label: '上右', value: 'Y~U~I~O~P' },
-    { label: '上左', value: 'Q~W~E~R~T' },
-    { label: '下右', value: 'N~M~,~.~/' },
-    { label: '下左', value: 'Z~X~C~V~B' }
-    // indexFingerRightOne: { label: '', value: ['Y', 'H', 'N'] },
-    // indexFingerRightTwo: { label: '', value: ['U', 'J', 'M'] },
-    // indexFingerLeftOne: { label: '', value: ['R', 'F', 'V'] },
-    // indexFingerLeftTwo: { label: '', value: ['T', 'G', 'B'] }
-  ];
-  const wordInterval = 5; // 间隔
-
-  const defaultFormData = {
-    resultLength: 100,
-    workType: ['N~M~,~.~/']
-  };
 
   // const selfAudioObj = new selfAudio();
 
   useEffect(() => {
-    formData.setFieldsValue({ ...defaultFormData });
-    getWorkText('init');
+    // getWorkText('init');
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -76,14 +51,17 @@ const Main = () => {
     let workArr: string[] = [];
     console.log(formData.getFieldsValue());
 
-    (formData.getFieldValue('workType') || defaultFormData.workType).forEach((item: string) => {
-      workArr = workArr.concat(item.split('~'));
+    (formData.getFieldValue('baseWork') || []).forEach((item: string) => {
+      workArr = workArr.concat(item.toLocaleUpperCase().split(''));
+    });
+    (formData.getFieldValue('fingerTest') || []).forEach((item: string) => {
+      workArr = workArr.concat(item.toLocaleUpperCase().split(''));
     });
     workArr = Array.from(new Set(workArr));
     // console.log('workArr: ', workArr);
     // console.log('join-type: ', type);
     let resultArr = [];
-    const forLength = formData.getFieldValue('resultLength') || defaultFormData.resultLength;
+    const forLength = formData.getFieldValue('resultLength');
     for (let i = 0; i < forLength; i++) {
       let str = workArr[Math.floor(Math.random() * workArr.length)];
       resultArr.push(str);
@@ -156,18 +134,40 @@ const Main = () => {
         </Button>
         <Drawer style={{ marginTop: 48 }} title="设置" onClose={hideDrawer} visible={isShowSettingDom} closable={false}>
           <Form form={formData}>
-            <Form.Item name="resultLength" label="字符数量" rules={[{ required: true, message: '必填' }]}>
+            <Form.Item name="resultLength" label="字符数量" rules={[{ required: true, message: '必填' }]} initialValue={120}>
               <InputNumber min={20} max={9999} placeholder="请输入" />
             </Form.Item>
-            <Form.Item name="workType" label="练习区间" rules={[{ required: true, message: '必选' }]}>
-              <Select mode="multiple" placeholder="请选择">
-                {baseWorkArr.map((item: WorkItem) => (
+            <Form.Item name="selectType" label="类型选择" rules={[{ required: true, message: '必选' }]}>
+              <Select mode="multiple" placeholder="请选择" onChange={val => setSelectType(val)}>
+                {selectTypeMap.map((item: MapItem) => (
                   <Option value={item.value} key={item.label}>
                     {item.label}
                   </Option>
                 ))}
               </Select>
             </Form.Item>
+            {selectType.includes(ESelectTypeMapValue.baseWord) && (
+              <Form.Item name="baseWork" label="基础字母" rules={[{ required: true, message: '必选' }]}>
+                <Select mode="multiple" placeholder="请选择">
+                  {baseWorkArr.map((item: MapItem) => (
+                    <Option value={item.value} key={item.label}>
+                      {item.label}
+                    </Option>
+                  ))}
+                </Select>
+              </Form.Item>
+            )}
+            {selectType.includes(ESelectTypeMapValue.fingerText) && (
+              <Form.Item name="fingerTest" label="手指练习" rules={[{ required: true, message: '必选' }]}>
+                <Select mode="multiple" placeholder="请选择">
+                  {fingerTestArr.map((item: MapItem) => (
+                    <Option value={item.value} key={item.label}>
+                      {item.label}
+                    </Option>
+                  ))}
+                </Select>
+              </Form.Item>
+            )}
           </Form>
           <Button type="primary" onClick={hideDrawer}>
             确定
@@ -176,7 +176,7 @@ const Main = () => {
       </>
     );
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [baseWorkArr, formData, isShowSettingDom]);
+  }, [baseWorkArr, formData, isShowSettingDom, selectType]);
 
   const writeDom = useMemo(() => {
     return (
