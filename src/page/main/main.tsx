@@ -2,12 +2,21 @@
  * @Author: xiaoWen
  * @Date: 2022-01-14 10:39:37
  * @LastEditors: xiaoWen
- * @LastEditTime: 2022-02-09 14:24:42
+ * @LastEditTime: 2022-02-10 10:12:57
  */
 
 import { Button, Drawer, Form, InputNumber, Select } from 'antd';
 import { useEffect, useMemo, useState } from 'react';
-import { baseWorkArr, ESelectTypeMapValue, fingerTestArr, fiterWorkArr, MapItem, selectTypeMap, tokenTestArr, wordInterval } from '../../utils/constant';
+import {
+  baseWorkArr,
+  ESelectTypeMapValue,
+  fingerTestArr,
+  fiterWorkArr,
+  MapItem,
+  selectTypeMap,
+  tokenTestArr,
+  wordInterval
+} from '../../utils/constant';
 
 import './main.less';
 // import { selfAudio } from './utils';
@@ -142,7 +151,14 @@ const Main = () => {
               <InputNumber min={20} max={9999} placeholder="请输入" />
             </Form.Item>
             <Form.Item name="selectType" label="类型选择" rules={[{ required: true, message: '必选' }]}>
-              <Select mode="multiple" placeholder="请选择" onChange={val => setSelectType(val)}>
+              <Select
+                mode="multiple"
+                placeholder="请选择"
+                onChange={val => {
+                  setSelectType(val);
+                  formData.setFieldsValue({'baseWork': [], 'fingerTest': [], 'tokenTest': []});
+                }}
+              >
                 {selectTypeMap.map((item: MapItem) => (
                   <Option value={item.value} key={item.label}>
                     {item.label}
