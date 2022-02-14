@@ -2,7 +2,7 @@
  * @Author: xiaoWen
  * @Date: 2022-01-14 10:39:37
  * @LastEditors: xiaoWen
- * @LastEditTime: 2022-02-10 10:12:57
+ * @LastEditTime: 2022-02-14 11:24:29
  */
 
 import { Button, Drawer, Form, InputNumber, Select } from 'antd';
@@ -60,13 +60,13 @@ const Main = () => {
     let workArr: string[] = [];
     console.log(formData.getFieldsValue());
 
-    (formData.getFieldValue('baseWork') || []).forEach((item: string) => {
+    (formData.getFieldValue(ESelectTypeMapValue.baseWord) || []).forEach((item: string) => {
       workArr = workArr.concat(item.toLocaleUpperCase().split(''));
     });
-    (formData.getFieldValue('fingerTest') || []).forEach((item: string) => {
+    (formData.getFieldValue(ESelectTypeMapValue.fingerText) || []).forEach((item: string) => {
       workArr = workArr.concat(item.toLocaleUpperCase().split(''));
     });
-    (formData.getFieldValue('tokenTest') || []).forEach((item: string) => {
+    (formData.getFieldValue(ESelectTypeMapValue.tokenTest) || []).forEach((item: string) => {
       workArr = workArr.concat(item.toLocaleUpperCase().split(''));
     });
 
@@ -140,6 +140,28 @@ const Main = () => {
         });
       }
     };
+
+    const handleChangeType = (valArr: ESelectTypeMapValue[]) => {
+      if (selectType.length > valArr.length) {
+        // 取消某个类型
+
+        // 元素多的数组转为obj，通过obj去提取交集元素。   arr删除因为删除中下标变化，导致数据有时会出问题
+        let selectTypeObj: any = {};
+        selectType.forEach(item => (selectTypeObj[item] = true));
+        valArr.forEach(item => {
+          if (selectTypeObj[item]) delete selectTypeObj[item];
+        });
+        // console.log('selectTypeObj: ', selectTypeObj, Object.keys(selectTypeObj));
+
+        // 将true置为undefined
+        for (let key in selectTypeObj) {
+          selectTypeObj[key] = undefined;
+        }
+
+        formData.setFieldsValue(selectTypeObj);
+      }
+      setSelectType(valArr);
+    };
     return (
       <>
         <Button type="primary" className="setting-button" onClick={() => setIsShowSettingDom(true)}>
@@ -151,14 +173,7 @@ const Main = () => {
               <InputNumber min={20} max={9999} placeholder="请输入" />
             </Form.Item>
             <Form.Item name="selectType" label="类型选择" rules={[{ required: true, message: '必选' }]}>
-              <Select
-                mode="multiple"
-                placeholder="请选择"
-                onChange={val => {
-                  setSelectType(val);
-                  formData.setFieldsValue({'baseWork': [], 'fingerTest': [], 'tokenTest': []});
-                }}
-              >
+              <Select mode="multiple" placeholder="请选择" onChange={handleChangeType}>
                 {selectTypeMap.map((item: MapItem) => (
                   <Option value={item.value} key={item.label}>
                     {item.label}
@@ -167,7 +182,7 @@ const Main = () => {
               </Select>
             </Form.Item>
             {selectType.includes(ESelectTypeMapValue.baseWord) && (
-              <Form.Item name="baseWork" label="基础字母" rules={[{ required: true, message: '必选' }]}>
+              <Form.Item name={ESelectTypeMapValue.baseWord} label="基础字母" rules={[{ required: true, message: '必选' }]}>
                 <Select mode="multiple" placeholder="请选择">
                   {baseWorkArr.map((item: MapItem) => (
                     <Option value={item.value} key={item.label}>
@@ -178,7 +193,7 @@ const Main = () => {
               </Form.Item>
             )}
             {selectType.includes(ESelectTypeMapValue.fingerText) && (
-              <Form.Item name="fingerTest" label="手指练习" rules={[{ required: true, message: '必选' }]}>
+              <Form.Item name="fingerText" label="手指练习" rules={[{ required: true, message: '必选' }]}>
                 <Select mode="multiple" placeholder="请选择">
                   {fingerTestArr.map((item: MapItem) => (
                     <Option value={item.value} key={item.label}>
