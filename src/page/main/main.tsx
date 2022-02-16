@@ -2,10 +2,10 @@
  * @Author: xiaoWen
  * @Date: 2022-01-14 10:39:37
  * @LastEditors: xiaoWen
- * @LastEditTime: 2022-02-14 11:24:29
+ * @LastEditTime: 2022-02-16 11:55:23
  */
 
-import { Button, Drawer, Form, InputNumber, Select } from 'antd';
+import { Button, Drawer, Form, InputNumber, message, Modal, Select } from 'antd';
 import { useEffect, useMemo, useState } from 'react';
 import {
   baseWorkArr,
@@ -33,6 +33,7 @@ const Main = () => {
   const [writeBoxArr, setWriteBoxArr] = useState<WriteBoxArrItem[]>([]);
 
   const [isShowSettingDom, setIsShowSettingDom] = useState<boolean>(true); // 是否显示设置抽屉
+  const [isShowfinishModal, setIsShowfinishModal] = useState<boolean>(false); // 是否显示已联系完毕modal
   const [selectType, setSelectType] = useState<ESelectTypeMapValue[]>([]); // 类型选择
 
   const [formData] = Form.useForm();
@@ -98,6 +99,7 @@ const Main = () => {
   /** 监听用户输入 */
   const listenUserKeyDow = (e: { key: string }) => {
     if (isShowSettingDom) return;
+    if (writeBoxArr.length >= wordBoxArr.length) return;
     let work = e.key.toLocaleUpperCase();
     if (fiterWorkArr.includes(work)) {
       return;
@@ -117,13 +119,12 @@ const Main = () => {
         // selfAudioObj.errorSay();
       }
     }
-    if (arr.length === wordBoxArr.length) {
+    setWriteBoxArr(arr);
+
+    if (arr.length + 1 === wordBoxArr.length) {
       // 练习完了
-      console.log('练习完了', arr, wordBoxArr);
-      setWriteBoxArr([]);
-      getWorkText('over');
-    } else {
-      setWriteBoxArr(arr);
+      setIsShowfinishModal(true);
+      // console.log('练习完了', arr, wordBoxArr);
     }
   };
 
@@ -162,6 +163,22 @@ const Main = () => {
       }
       setSelectType(valArr);
     };
+
+    const selectChange = (valArr: string[], formName: ESelectTypeMapValue, optionArr: MapItem[]) => {
+      if (valArr.includes('')) {
+        let reultArr: any = undefined; // 全不选
+        if (valArr.length - 1 < optionArr.length) {
+          // 全选
+          reultArr = Array.from(new Set([...valArr.filter(item => item), ...optionArr.map(item => item.value)]));
+        }
+        const obj: any = {};
+        // 合并数组并去重，不改变选择的顺序
+        // console.log(reultArr);
+        obj[formName] = reultArr;
+        formData.setFieldsValue(obj);
+      }
+    };
+
     return (
       <>
         <Button type="primary" className="setting-button" onClick={() => setIsShowSettingDom(true)}>
@@ -183,7 +200,12 @@ const Main = () => {
             </Form.Item>
             {selectType.includes(ESelectTypeMapValue.baseWord) && (
               <Form.Item name={ESelectTypeMapValue.baseWord} label="基础字母" rules={[{ required: true, message: '必选' }]}>
-                <Select mode="multiple" placeholder="请选择">
+                <Select
+                  mode="multiple"
+                  placeholder="请选择"
+                  onChange={valArr => selectChange(valArr, ESelectTypeMapValue.baseWord, baseWorkArr)}
+                >
+                  <Option value="">全选</Option>
                   {baseWorkArr.map((item: MapItem) => (
                     <Option value={item.value} key={item.label}>
                       {item.label}
@@ -194,7 +216,12 @@ const Main = () => {
             )}
             {selectType.includes(ESelectTypeMapValue.fingerText) && (
               <Form.Item name="fingerText" label="手指练习" rules={[{ required: true, message: '必选' }]}>
-                <Select mode="multiple" placeholder="请选择">
+                <Select
+                  mode="multiple"
+                  placeholder="请选择"
+                  onChange={valArr => selectChange(valArr, ESelectTypeMapValue.fingerText, fingerTestArr)}
+                >
+                  <Option value="">全选</Option>
                   {fingerTestArr.map((item: MapItem) => (
                     <Option value={item.value} key={item.label}>
                       {item.label}
@@ -205,7 +232,12 @@ const Main = () => {
             )}
             {selectType.includes(ESelectTypeMapValue.tokenTest) && (
               <Form.Item name="tokenTest" label="符号练习" rules={[{ required: true, message: '必选' }]}>
-                <Select mode="multiple" placeholder="请选择">
+                <Select
+                  mode="multiple"
+                  placeholder="请选择"
+                  onChange={valArr => selectChange(valArr, ESelectTypeMapValue.tokenTest, tokenTestArr)}
+                >
+                  <Option value="">全选</Option>
                   {tokenTestArr.map((item: MapItem) => (
                     <Option value={item.value} key={item.label}>
                       {item.label}
@@ -245,10 +277,49 @@ const Main = () => {
     );
   }, [wordBoxArr, writeBoxArr]);
 
+  const finishModal = useMemo(() => {
+    const hideModal = () => {
+      setIsShowfinishModal(false);
+      setTimeout(() => {
+        setWriteBoxArr([]);
+        getWorkText('over');
+      }, 500);
+    };
+    return (
+      <Modal
+        title="练习完毕"
+        visible={isShowfinishModal}
+        onCancel={hideModal}
+        footer={
+          <div className="button-box">
+            <Button onClick={hideModal}>确定</Button>
+          </div>
+        }
+      >
+        <div className="finish-modal">
+          <div className="item">
+            <span>时间：</span>
+            <span>30s</span>
+          </div>
+          <div className="item">
+            <span>速度：</span>
+            <span>100字/s</span>
+          </div>
+          <div className="item">
+            <span>正确率：</span>
+            <span>200%</span>
+          </div>
+        </div>
+      </Modal>
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isShowfinishModal]);
+
   return (
     <div className="word-page">
       {settingDom}
       {writeDom}
+      {finishModal}
     </div>
   );
 };
