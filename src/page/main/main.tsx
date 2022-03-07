@@ -2,7 +2,7 @@
  * @Author: xiaoWen
  * @Date: 2022-01-14 10:39:37
  * @LastEditors: xiaoWen
- * @LastEditTime: 2022-02-16 11:55:23
+ * @LastEditTime: 2022-02-22 09:56:30
  */
 
 import { Button, Drawer, Form, InputNumber, message, Modal, Select } from 'antd';
@@ -53,7 +53,7 @@ const Main = () => {
       window.removeEventListener('keydown', listenUserKeyDow);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [writeBoxArr, wordBoxArr, isShowSettingDom]);
+  }, [writeBoxArr, wordBoxArr, isShowSettingDom, isShowfinishModal]);
 
   /** 获取随机字符 */
   const getWorkText = (type: string) => {
@@ -99,6 +99,7 @@ const Main = () => {
   /** 监听用户输入 */
   const listenUserKeyDow = (e: { key: string }) => {
     if (isShowSettingDom) return;
+    if (isShowfinishModal) return;
     if (writeBoxArr.length >= wordBoxArr.length) return;
     let work = e.key.toLocaleUpperCase();
     if (fiterWorkArr.includes(work)) {
@@ -288,6 +289,7 @@ const Main = () => {
     return (
       <Modal
         title="练习完毕"
+        closable={false}
         visible={isShowfinishModal}
         onCancel={hideModal}
         footer={
@@ -297,7 +299,7 @@ const Main = () => {
         }
       >
         <div className="finish-modal">
-          <div className="item">
+          {/* <div className="item">
             <span>时间：</span>
             <span>30s</span>
           </div>
@@ -308,7 +310,7 @@ const Main = () => {
           <div className="item">
             <span>正确率：</span>
             <span>200%</span>
-          </div>
+          </div> */}
         </div>
       </Modal>
     );
